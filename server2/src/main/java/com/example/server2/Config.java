@@ -1,10 +1,10 @@
 package com.example.server2;
 
+import io.micrometer.tracing.otel.bridge.BaggageTaggingSpanProcessor;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
-import org.springframework.cloud.sleuth.otel.bridge.BaggageTaggingSpanProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;

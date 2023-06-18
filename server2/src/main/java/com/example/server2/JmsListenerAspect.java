@@ -1,19 +1,18 @@
 package com.example.server2;
 
 
+import io.micrometer.tracing.BaggageInScope;
+import io.micrometer.tracing.BaggageManager;
+import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
+import jakarta.jms.Destination;
+import jakarta.jms.Message;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.BaggageInScope;
-import org.springframework.cloud.sleuth.BaggageManager;
-import org.springframework.cloud.sleuth.CurrentTraceContext;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.TraceContext;
-import org.springframework.cloud.sleuth.Tracer;
-
-import javax.jms.Destination;
-import javax.jms.Message;
 import java.util.List;
 
 @Aspect
@@ -42,8 +41,7 @@ public class JmsListenerAspect {
             for (String key : List.of("bg-field1","bg-field2","bg-field3","bg-field4")) {
                 String value = message.getStringProperty(key);
 
-                try (BaggageInScope baggageInScope = baggageManager.createBaggage(key)) {
-                    baggageInScope.set(traceContext, value);
+                try (BaggageInScope baggageInScope = baggageManager.createBaggageInScope(traceContext, key, value)) {
                 }
             }
 
