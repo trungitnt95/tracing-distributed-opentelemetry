@@ -6,31 +6,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.TextMessage;
-
 @RestController
+@RequestMapping("/v2")
 public class ServiceAController {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceAController.class);
 
     @Autowired
-    Tracer tracer;
+    private Tracer tracer;
 
     @Autowired
-    RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
     @Autowired
-    WebClient.Builder webClient;
+    private WebClient webClient;
 
 
     @Autowired
@@ -38,28 +35,97 @@ public class ServiceAController {
 
 
     public void sendMessage(String queueName, final String message) {
-
         System.out.println("Gửi tin nhắn đến queue - " + queueName);
-//        jmsTemplate.send(queueName, new MessageCreator() {
-//            public Message createMessage(Session session) throws JMSException {
-//                TextMessage textMessage = session.createTextMessage(message);
-////                textMessage.setStringProperty("x-span-id", jmsSpan.context().spanId());
-////                textMessage.setStringProperty("x-trace-id", jmsSpan.context().traceId());
-////                textMessage.setStringProperty("x-parent-span-id", currentContext != null ? currentContext.spanId() : null);
-////                textMessage.setBooleanProperty("x-tracing-sampled", jmsSpan.context().sampled());
-//                return textMessage;
-//            }
-//        });
         jmsTemplate.convertAndSend(queueName, message);
+    }
 
+    @GetMapping("/ex0/http-rest-template")
+    public ResponseEntity<String> ex0() {
+        log.info("===== Exercise 0 =====");
+        ResponseEntity<String> aToBToC = restTemplate.getForEntity("http://localhost:8082/v2/ex0/users/usid-001", String.class);
+        ResponseEntity<String> aToD = restTemplate.getForEntity("http://localhost:8085/v3/ex0/users/usid-001", String.class);
+
+
+        return ResponseEntity.ok("hello world");
+    }
+
+    @GetMapping("/ex01/http-web-client")
+    public ResponseEntity<String> test3() {
+        log.info("===== Exercise 3 =====");
+        Mono<String> resBody = webClient.get().uri("http://localhost:8082/v2/ex01/users/usid-001")
+                .retrieve().bodyToMono(String.class);
+        resBody.subscribe((next) -> {
+            log.info("ex3 received {}", next);
+        });
+        webClient.get().uri("http://localhost:8085/v3/ex01/users/usid-001")
+                .retrieve().bodyToMono(String.class)
+                .subscribe((res) -> log.info("ex3 received {}", res));
+
+        return ResponseEntity.ok("finished ex3");
+    }
+
+    @GetMapping("/ex1/http-rest-template")
+    public ResponseEntity<String> ex1() {
+        log.info("===== Exercise 1 =====");
+        return restTemplate.getForEntity("http://localhost:8082/v2/ex1/users/usid-001", String.class);
+    }
+
+    @GetMapping("/ex2/http-rest-template")
+    public ResponseEntity<String> ex2() {
+        log.info("===== Exercise 2 =====");
+        return restTemplate.getForEntity("http://localhost:8084/v3/ex2/users/usid-001", String.class);
+    }
+
+    @GetMapping("/ex3/http-web-client")
+    public ResponseEntity<String> ex3() {
+        log.info("===== Exercise 3 =====");
+        Mono<String> resBody = webClient.get().uri("http://localhost:8082/v2/ex3/users/usid-001")
+                .retrieve().bodyToMono(String.class);
+        resBody.subscribe((next) -> {
+            log.info("ex3 received {}", next);
+        });
+        return ResponseEntity.ok("finished ex3");
+    }
+
+    @GetMapping("/ex4/http-web-client")
+    public ResponseEntity<String> ex4() {
+        log.info("===== Exercise 4 =====");
+        String result = webClient.get().uri("http://localhost:8082/v2/ex3/users/usid-001")
+                .retrieve().bodyToMono(String.class)
+                .block();
+        log.info("result received {}", result);
+        return ResponseEntity.ok("finished ex4" + result);
+    }
+
+    @GetMapping("/ex5/http-web-client")
+    public ResponseEntity<String> ex5() {
+        log.info("===== Exercise 5 =====");
+        Mono<String> resBody = webClient.get().uri("http://localhost:8082/v2/ex5/users/usid-001")
+                .retrieve().bodyToMono(String.class);
+        resBody.subscribe((next) -> {
+            log.info("ex5 received {}", next);
+        });
+        return ResponseEntity.ok("finished ex5");
+    }
+
+    @GetMapping("/ex6/http-rest-template")
+    public ResponseEntity<String> ex6() {
+        log.info("===== Exercise 6 =====");
+
+        new Thread(() -> {
+            ResponseEntity<String> forEntity = restTemplate.getForEntity("http://localhost:8082/v2/ex1/users/usid-001", String.class);
+            log.info("response ex6 {}", forEntity.getBody());
+        }).start();
+
+        return ResponseEntity.ok("finished ex6");
     }
 
     @GetMapping("/test")
-    String home() {
+    public String home() {
         log.info("Hello world!");
         ResponseEntity<String> first = restTemplate.getForEntity("http://localhost:8083/test1", String.class);
 
-        Mono<String> stringMono = webClient.build()
+        Mono<String> stringMono = webClient
                 .get()
                 .uri("http://localhost:8083/test2")
                 .header("bg-field2", "")

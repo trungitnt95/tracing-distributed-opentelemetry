@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8083
 
 spring:
   sleuth:
@@ -25,5 +25,5 @@ spring:
       jms:
         enabled: true
   application:
-    name: Service-A
+    name: Service-C
 #

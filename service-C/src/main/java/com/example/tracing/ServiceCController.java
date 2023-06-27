@@ -8,24 +8,30 @@ import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @RestController
+@RequestMapping("/v2")
 public class ServiceCController {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceCController.class);
 
     @Autowired
-    Tracer tracer;
+    private Tracer tracer;
 
     @Autowired
-    RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
     @Autowired
-    WebClient.Builder webClient;
+    private WebClient webClient;
 
 
     @Autowired
@@ -35,18 +41,46 @@ public class ServiceCController {
     public void sendMessage(String queueName, final String message) {
 
         System.out.println("Gửi tin nhắn đến queue - " + queueName);
-//        jmsTemplate.send(queueName, new MessageCreator() {
-//            public Message createMessage(Session session) throws JMSException {
-//                TextMessage textMessage = session.createTextMessage(message);
-////                textMessage.setStringProperty("x-span-id", jmsSpan.context().spanId());
-////                textMessage.setStringProperty("x-trace-id", jmsSpan.context().traceId());
-////                textMessage.setStringProperty("x-parent-span-id", currentContext != null ? currentContext.spanId() : null);
-////                textMessage.setBooleanProperty("x-tracing-sampled", jmsSpan.context().sampled());
-//                return textMessage;
-//            }
-//        });
         jmsTemplate.convertAndSend(queueName, message);
 
+    }
+
+    @GetMapping("/ex0/users/{id}/profiles")
+    public String test0(@PathVariable("id") String userId) {
+        log.info("ex0 {}", userId);
+        return "{id: " + userId +", profiles: ['p0','p1']}";
+    }
+
+    @GetMapping("/ex1/users/{id}/profiles")
+    public String test1(@PathVariable("id") String userId) {
+        log.info("ex1 {}", userId);
+        return "{id: " + userId +", profiles: ['p1','p2']}";
+    }
+
+    @GetMapping("/ex2/users/{id}/profiles")
+    public String test2(@PathVariable("id") String userId) {
+        log.info("ex2 {}", userId);
+        return "{id: " + userId +", profiles: ['p1','p2']}";
+    }
+
+    @GetMapping("/ex3/users/{id}/profiles")
+    public Mono<String> test3(@PathVariable("id") String userId) {
+        log.info("ex3 {}", userId);
+        return Mono.just("{id: " + userId +", profiles: ['p1','p2']}");
+    }
+
+    @GetMapping("/ex4/users/{id}/profiles")
+    public Mono<String> test4(@PathVariable("id") String userId) {
+        log.info("ex4 {}", userId);
+        return Mono.just("{id: " + userId +", profiles: ['p1','p2']}");
+    }
+
+    @GetMapping("/ex5/users/{id}/profiles")
+    public Flux<String> test5(@PathVariable("id") String userId) {
+        log.info("ex5 {}", userId);
+        return Flux.just("{id: " + userId +", profiles: ['p1','p2']}","{id: " + userId +", profiles: ['p3','p4']}","{id: " + userId +", profiles: ['p5','p6']}")
+                //.delayElements(Duration.ofSeconds(5))
+                ;
     }
 
     @GetMapping("/test")
@@ -54,7 +88,7 @@ public class ServiceCController {
         log.info("Hello world!");
         ResponseEntity<String> first = restTemplate.getForEntity("http://localhost:8083/test1", String.class);
 
-        Mono<String> stringMono = webClient.build()
+        Mono<String> stringMono = webClient
                 .get()
                 .uri("http://localhost:8083/test2")
                 .header("bg-field2", "")

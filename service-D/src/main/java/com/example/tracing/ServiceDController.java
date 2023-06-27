@@ -1,12 +1,14 @@
 package com.example.tracing;
 
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,14 +18,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
 @RestController
-@RequestMapping("/v2")
-public class ServiceBController {
-
-    private static final Logger log = LoggerFactory.getLogger(ServiceBController.class);
+@RequestMapping("/v3")
+public class ServiceDController {
 
     @Autowired
     private Tracer tracer;
@@ -34,56 +31,46 @@ public class ServiceBController {
     @Autowired
     private WebClient webClient;
 
+    private static final Logger log = LoggerFactory.getLogger(ServiceDController.class);
 
     @Autowired
     private JmsTemplate jmsTemplate;
 
+//    @Autowired
+//    private ObservationRegistry observationRegistry;
+
+
     @GetMapping("/ex0/users/{id}")
     public ResponseEntity<String> ex0(@PathVariable("id") String id) {
         log.info("ex0 {}", id);
-        ResponseEntity<String> bToC =
-                restTemplate.getForEntity("http://localhost:8083/v2/ex0/users/" + id + "/profiles", String.class);
-        ResponseEntity<String> aToD =
-                restTemplate.getForEntity("http://localhost:8084/v3/ex0/users/usid-001", String.class);
-        return ResponseEntity.ok(bToC + ":" + aToD);
+        return ResponseEntity.ok("D service result");
     }
 
-    @GetMapping("/ex1/users/{id}")
+    @GetMapping("/ex2/users/{id}")
     public ResponseEntity<String> ex1(@PathVariable("id") String id) {
         log.info("ex1 {}", id);
         return restTemplate.getForEntity("http://localhost:8083/v2/ex1/users/" + id + "/profiles", String.class);
     }
 
-    @GetMapping("/ex3/users/{id}")
-    public Mono<String> ex3(@PathVariable("id") String id) throws InterruptedException {
-        log.info("ex3 {}", id);
-        return webClient.get().uri("http://localhost:8083/v2/ex3/users/" + id + "/profiles")
-                .retrieve().bodyToMono(String.class);
-    }
-    @GetMapping("/ex01/users/{id}")
-    public Mono<String> ex01(@PathVariable("id") String id) throws InterruptedException {
-        log.info("ex3 {}", id);
-        Mono<String> bToC = webClient.get().uri("http://localhost:8083/v2/ex3/users/" + id + "/profiles")
-                .retrieve().bodyToMono(String.class);
-
-        Mono<String> bToD = webClient.get().uri("http://localhost:8084/v3/ex01/users/" + id + "/profiles")
-                .retrieve().bodyToMono(String.class);
-//        return bToC;
-        return Mono.zip(bToC, bToD).map(tuple -> {
-            String resultFromA = tuple.getT1();
-            String resultFromB = tuple.getT2();
-
-            // Process the results from both Monos and return the merged result
-            String mergedResult = resultFromA + resultFromB;
-            return mergedResult;
-        });
+    @GetMapping("/ex01/users/{id}/profiles")
+    public Mono<String> test01(@PathVariable("id") String userId) {
+        log.info("ex01 {}", userId);
+        return Mono.just("{id: " + userId +", profiles: ['p1','p2']}");
     }
 
-    @GetMapping("/ex5/users/{id}")
-    public Flux<String> ex5(@PathVariable("id") String id) {
-        log.info("ex5 {}", id);
-        return webClient.get().uri("http://localhost:8083/v2/ex5/users/" + id + "/profiles")
-                .retrieve().bodyToFlux(String.class);
+    @GetMapping("/ex4/users/{id}")
+    public Mono<String> ex3(@PathVariable("id") String id) {
+        log.info("ex4 {}", id);
+        return webClient.get().uri("http://localhost:8083/v2/ex4/users/" + id + "/profiles")
+                .retrieve().bodyToMono(String.class);
+    }
+
+    @GetMapping("/ex11/get-numbers")
+    @CrossOrigin(origins = "http://localhost:4200")
+    public Flux<Integer> ex11() {
+        return webClient.get().uri("http://localhost:8085/v3/ex11/get-numbers")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .retrieve().bodyToFlux(Integer.class);
     }
 
     public void sendMessage(String queueName, final String message) {
@@ -106,7 +93,12 @@ public class ServiceBController {
     @GetMapping("/test")
     String home() {
         log.info("Hello world!");
-        ResponseEntity<String> first = restTemplate.getForEntity("http://localhost:8083/test1", String.class);
+//        ResponseEntity<String> first = Observation.start("rest-template-sample", observationRegistry).observe(() -> {
+//            log.info("<ACCEPTANCE_TEST> <TRACE:{}> Hello from consumer", this.tracer.currentSpan().context().traceId());
+//            return this.restTemplate.getForObject(url, String.class);
+//            return
+                    restTemplate.getForEntity("http://localhost:8083/test1", String.class);
+//        });
 
         Mono<String> stringMono = webClient
                 .get()
@@ -121,17 +113,4 @@ public class ServiceBController {
     }
 
 
-//    @JmsListener(destination = "inbound.queue")
-//    public void receiveMessage(Message jsonMessage) throws JMSException {
-//
-//
-//
-//        String messageData = null;
-//        if(jsonMessage instanceof TextMessage) {
-//            TextMessage textMessage = (TextMessage)jsonMessage;
-//            messageData = textMessage.getText();
-//        }
-//
-////        producer.sendMessage("outbound.queue", messageData);
-//    }
 }

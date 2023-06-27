@@ -1,0 +1,22 @@
+server:
+  port: 8086
+
+management:
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+  tracing:
+    sampling:
+      probability: 1.0
+    baggage:
+      remote-fields:
+        - bg-field1
+        - bg-field2
+        - bg-field3
+        - bg-field4
+      correlation-enabled: true
+      correlation-fields:
+        - col-field
+spring:
+  application:
+    name: server-1

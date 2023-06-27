@@ -1,0 +1,17 @@
+server:
+  port: 8085
+#spring.zipkin.enabled=true
+#spring.zipkin.sender.type=web
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+    baggage:
+      remote-fields:
+        - bg-field1
+        - bg-field2
+        - bg-field3
+        - bg-field4
+spring:
+  application:
+    name: Service-E
