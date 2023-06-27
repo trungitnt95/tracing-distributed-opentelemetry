@@ -1,13 +1,13 @@
 package com.example.tracing;
 
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,6 +33,9 @@ public class Example {
     @Autowired
     private JmsTemplate jmsTemplate;
 
+    @Autowired
+    private ObservationRegistry observationRegistry;
+
 
     public void sendMessage(String queueName, final String message) {
 
@@ -54,7 +57,12 @@ public class Example {
     @GetMapping("/test")
     String home() {
         log.info("Hello world!");
-        ResponseEntity<String> first = restTemplate.getForEntity("http://localhost:8083/test1", String.class);
+//        ResponseEntity<String> first = Observation.start("rest-template-sample", observationRegistry).observe(() -> {
+//            log.info("<ACCEPTANCE_TEST> <TRACE:{}> Hello from consumer", this.tracer.currentSpan().context().traceId());
+//            return this.restTemplate.getForObject(url, String.class);
+//            return
+                    restTemplate.getForEntity("http://localhost:8083/test1", String.class);
+//        });
 
         Mono<String> stringMono = webClient.build()
                 .get()

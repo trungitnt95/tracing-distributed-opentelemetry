@@ -1,7 +1,7 @@
 package com.example.tracing;
 
+import io.micrometer.tracing.Tracer;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;

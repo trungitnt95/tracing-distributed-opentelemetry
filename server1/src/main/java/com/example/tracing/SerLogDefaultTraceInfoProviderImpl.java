@@ -1,9 +1,9 @@
 package com.example.tracing;
 
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.HashMap;
 import java.util.Map;
