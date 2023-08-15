@@ -68,9 +68,10 @@ public class ServiceDController {
     @GetMapping("/ex11/get-numbers")
     @CrossOrigin(origins = "http://localhost:4200")
     public Flux<Integer> ex11() {
-        return webClient.get().uri("http://localhost:8085/v3/ex11/get-numbers")
+        Flux<Integer> integerFlux = webClient.get().uri("http://localhost:8085/v3/ex11/get-numbers")
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve().bodyToFlux(Integer.class);
+        return integerFlux;
     }
 
     public void sendMessage(String queueName, final String message) {

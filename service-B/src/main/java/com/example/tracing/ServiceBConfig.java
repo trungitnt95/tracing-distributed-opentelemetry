@@ -70,13 +70,13 @@ public class ServiceBConfig {
     RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder
                 // Test code to print out all headers - you don't need this code
-                .additionalInterceptors((request, body, execution) -> {
-                    String b3 = request.getHeaders().get("b3").get(0);
-                    request.getHeaders().put("traceparent", List.of("00-" + b3.substring(0, b3.length()-2) +"-01"));
-                    request.getHeaders();
-                    request.getHeaders().forEach((s, strings) -> LOGGER.info("HEADER [{}] VALUE {}", s, strings));
-                    return execution.execute(request, body);
-                })
+//                .additionalInterceptors((request, body, execution) -> {
+//                    String b3 = request.getHeaders().get("b3").get(0);
+//                    request.getHeaders().put("traceparent", List.of("00-" + b3.substring(0, b3.length()-2) +"-01"));
+//                    request.getHeaders();
+//                    request.getHeaders().forEach((s, strings) -> LOGGER.info("HEADER [{}] VALUE {}", s, strings));
+//                    return execution.execute(request, body);
+//                })
                 .build();
     }
 
@@ -84,15 +84,15 @@ public class ServiceBConfig {
     @Bean
     public WebClient webClient(WebClient.Builder builder) {
         return builder
-                .filter((request, next) -> {
-                    ClientRequest modifiedRequest = ClientRequest.from(request)
-                            .headers(headers -> {
-                                String b3 = headers.get("b3").get(0);
-                                headers.put("traceparent", List.of("00-" + b3.substring(0, b3.length()-2) +"-01"));
-                            })
-                            .build();
-                    return next.exchange(modifiedRequest);
-                })
+//                .filter((request, next) -> {
+//                    ClientRequest modifiedRequest = ClientRequest.from(request)
+//                            .headers(headers -> {
+//                                String b3 = headers.get("b3").get(0);
+//                                headers.put("traceparent", List.of("00-" + b3.substring(0, b3.length()-2) +"-01"));
+//                            })
+//                            .build();
+//                    return next.exchange(modifiedRequest);
+//                })
                 .build();
     }
 
@@ -105,7 +105,7 @@ public class ServiceBConfig {
      */
     @Bean
     public BaggageTaggingSpanProcessor baggageTaggingSpanProcessor() {
-        return new CustomBaggageTaggingSpanProcessor(List.of("bg-field2", "bg-field3"));
+        return new CustomBaggageTaggingSpanProcessor(List.of("bg-field2", "bg-field3", "x-tracing-flow-code"));
     }
 
     class CustomBaggageTaggingSpanProcessor extends BaggageTaggingSpanProcessor {

@@ -14,6 +14,7 @@ spring:
           endpoint: http://localhost:4317
     baggage:
       remote-fields:
+        - x-tracing-flow-code
         - bg-field1
         - bg-field2
         - bg-field3
@@ -24,6 +25,8 @@ spring:
     messaging:
       jms:
         enabled: true
+    propagation:
+      type: W3C
   application:
     name: Service-B
 #

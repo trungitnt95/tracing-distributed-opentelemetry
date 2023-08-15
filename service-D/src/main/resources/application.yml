@@ -19,6 +19,8 @@ management:
       correlation-enabled: true
       correlation-fields:
         - col-field
+    propagation:
+      type: W3C
 spring:
   application:
     name: Service-D

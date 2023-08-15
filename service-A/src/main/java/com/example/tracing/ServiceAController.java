@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -42,8 +44,17 @@ public class ServiceAController {
     @GetMapping("/ex0/http-rest-template")
     public ResponseEntity<String> ex0() {
         log.info("===== Exercise 0 =====");
-        ResponseEntity<String> aToBToC = restTemplate.getForEntity("http://localhost:8082/v2/ex0/users/usid-001", String.class);
-        ResponseEntity<String> aToD = restTemplate.getForEntity("http://localhost:8085/v3/ex0/users/usid-001", String.class);
+
+        webClient.post().uri("http://localhost:8082/v2/ex0/testing")
+                .body(Flux.just(new TestAA()), TestAA.class)
+
+                .retrieve().bodyToFlux(String.class)
+                .subscribe((str) -> {
+                    System.out.println("OK- " + str);
+                });
+
+//        ResponseEntity<String> aToBToC = restTemplate.getForEntity("http://localhost:8082/v2/ex0/users/usid-001", String.class);
+//        ResponseEntity<String> aToD = restTemplate.getForEntity("http://localhost:8085/v3/ex0/users/usid-001", String.class);
 
 
         return ResponseEntity.ok("hello world");
@@ -151,4 +162,6 @@ public class ServiceAController {
 //
 ////        producer.sendMessage("outbound.queue", messageData);
 //    }
+
+
 }

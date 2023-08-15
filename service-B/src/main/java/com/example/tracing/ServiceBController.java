@@ -5,10 +5,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -37,6 +40,12 @@ public class ServiceBController {
 
     @Autowired
     private JmsTemplate jmsTemplate;
+
+
+    @PostMapping(path = "/ex0/testing")
+    public Flux<String> ge1t(@RequestBody Flux<TestAA> req) {
+        return req.flatMap(t -> Mono.just("BBB"));
+    }
 
     @GetMapping("/ex0/users/{id}")
     public ResponseEntity<String> ex0(@PathVariable("id") String id) {

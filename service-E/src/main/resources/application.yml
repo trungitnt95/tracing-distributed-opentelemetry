@@ -4,6 +4,8 @@ server:
 #spring.zipkin.sender.type=web
 management:
   tracing:
+    propagation:
+      type: W3C
     sampling:
       probability: 1.0
     baggage:

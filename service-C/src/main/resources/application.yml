@@ -4,6 +4,8 @@ server:
 spring:
   sleuth:
     enabled: true
+    propagation:
+      type: W3C
     otel:
       config:
         trace-id-ratio-based: 1.0
